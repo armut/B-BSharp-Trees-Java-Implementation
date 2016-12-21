@@ -1,5 +1,3 @@
-import java.util.List;
-
 public class BTree<T extends Comparable<T>> {
     Node<T> root;
     private int d, maxCellSize, ptrSize;
@@ -15,9 +13,10 @@ public class BTree<T extends Comparable<T>> {
         // newKey is the bad guy who causes the need of split.
         //TODO: Yukarıda yer varsa.
         boolean imDone = false;
-        for(int i = 0; i < n.getKeys().size(); i++) {
+        for( int i = 0; i < n.getKeys().size(); i++ ) {
             if( newKey.compareTo(n.getKeys().get(i)) < 0 ) {
                 n.getKeys().add(i, newKey);
+                //TODO: ptr kontrolü
                 imDone = true;
                 break;
             }
@@ -49,11 +48,22 @@ public class BTree<T extends Comparable<T>> {
         n.getPtr().add(left);
         n.getKeys().add(midKey);
         n.getPtr().add(right);
-        //TODO: getParent() yapılsın hele.
+
+        if( n != root ) {
+            Node<T> p = getParent(root, midKey);
+            if( p != root ) {
+                Node<T> pp = getParent(p, midKey);
+                insertPrivate(pp, midKey, left, right);
+            } else {
+                int index = getParentPtr(n, p);
+                p.getPtr().set(index, null);
+                insertPrivate(root, midKey, left, right);
+            }
+        }
     }
 
     private Node<T> getParent(Node<T> p, T key) {
-        if( p == root && root.getKeys().contains(key))
+        if( p == root && root.getKeys().contains(key) )
             return root;
 
         // For every single key in current p,
@@ -61,64 +71,68 @@ public class BTree<T extends Comparable<T>> {
             Node<T> left = p.getPtr().get(i);
             Node<T> right = p.getPtr().get(i + 1);
 
-            if( left != null ) {
-                if( key.compareTo(left.getKeys().get(0)) < 0 )
-                    return getParent(left, key);
-                else if( key.compareTo(left.getKeys().get(left.getKeys().size() - 1)) > 0 )
-                    return getParent(right, key);
-                else
+            if( left != null && right != null ) {
+                if( left.getKeys().contains(key) || right.getKeys().contains(key) )
                     return p;
-            } else if( right != null ) {
-                if( key.compareTo(right.getKeys().get(0)) < 0 )
+                else if( !left.getKeys().contains(key) && key.compareTo(left.getKeys().get(0)) < 0 )
                     return getParent(left, key);
-                else if( key.compareTo(right.getKeys().get(right.getKeys().size() - 1)) > 0 )
+                else if( !right.getKeys().contains(key) && key.compareTo(right.getKeys().get(0)) < 0 )
                     return getParent(right, key);
-                else
-                    return p;
             }
         }
         // If none of the above, then no such key.
         return null;
     }
 
-    public void insert(T key) {
-        insertPrivate(root, key);
+    private int getParentPtr(Node<T> n, Node<T> p) {
+        // Find n's position in parent p's pointer nodes.
+        for( int i = 0; i < p.getPtr().size(); i++ )
+            if(p.getPtr().get(i) == n)
+                return i;
+        return -1;
     }
 
-    private void insertPrivate(Node<T> n, T key) {
+    public void insert(T key) {
+        insertPrivate(root, key, null, null);
+    }
+
+    private void insertPrivate(Node<T> n, T key, Node<T> leftPtr, Node<T> rightPtr) {
         boolean imDone = false;
         if( root == null ) {
             root = new Node<T>();
-            root.getPtr().add(null);
+            root.getPtr().add(leftPtr);
             root.getKeys().add(key);
-            root.getPtr().add(null);
+            root.getPtr().add(rightPtr);
         } else {
             if( n.getKeys().size() < maxCellSize ) {
+                int tmp = 0;
                 for( int i = 0; i < n.getKeys().size(); i++ ) {
                     if( key.compareTo(n.getKeys().get(i)) < 0 ) {
                         if( n.getPtr().get(i) == null ) {
                             n.getKeys().add(i, key);
-                            n.getPtr().add(null);
+                            n.getPtr().add(i, leftPtr);
+                            n.getPtr().set(i + 1, rightPtr);
                             imDone = true;
                             break;
                         } else {
-                            insertPrivate(n.getPtr().get(i), key);
+                            insertPrivate(n.getPtr().get(i), key, leftPtr, rightPtr);
                             imDone = true;
                             break;
                         }
-                    } else if( key.compareTo(n.getKeys().get(i)) > 0 ){
+                    } else if( key.compareTo(n.getKeys().get(i)) > 0 ) {
                         if( n.getPtr().get(i + 1) == null ) {
-                            continue;
+                            tmp = i + 1;
                         } else {
-                            insertPrivate(n.getPtr().get(i + 1), key);
+                            insertPrivate(n.getPtr().get(i + 1), key, leftPtr, rightPtr);
                             imDone = true;
                             break;
                         }
                     }
                 }
                 if( !imDone ) {
+                    n.getPtr().set(tmp, leftPtr);
                     n.getKeys().add(key);
-                    n.getPtr().add(null);
+                    n.getPtr().add(rightPtr);
                 }
             } else if( n.getKeys().size() == maxCellSize ) {
                 split(n, key);
@@ -127,11 +141,14 @@ public class BTree<T extends Comparable<T>> {
     }
 
     public void printTree() {
-        printTreePrivate(root);
+        if( root != null )
+            printTreePrivate(root);
+        else
+            System.out.println("The tree is empty.");
     }
 
     private void printTreePrivate(Node<T> n) {
-        for(int i = 0; i < n.getPtr().size(); i++) {
+        for( int i = 0; i < n.getPtr().size(); i++ ) {
             if( n.getPtr().get(i) != null )
                 printTreePrivate(n.getPtr().get(i));
         }
