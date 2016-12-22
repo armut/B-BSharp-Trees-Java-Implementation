@@ -9,20 +9,23 @@ public class BTree<T extends Comparable<T>> {
         this.ptrSize = 2 * d + 1;
     }
 
-    private void split(Node<T> n, T newKey) {
+    private void split(Node<T> n, T newKey, Node<T> leftPtr, Node<T> rightPtr) {
         // newKey is the bad guy who causes the need of split.
-        //TODO: Yukarıda yer varsa.
         boolean imDone = false;
         for( int i = 0; i < n.getKeys().size(); i++ ) {
             if( newKey.compareTo(n.getKeys().get(i)) < 0 ) {
                 n.getKeys().add(i, newKey);
-                //TODO: ptr kontrolü
+                n.getPtr().set(i, leftPtr);
+                n.getPtr().add(i + 1, rightPtr);
                 imDone = true;
                 break;
             }
         }
-        if( !imDone )
+        if( !imDone ) {
             n.getKeys().add(newKey);
+            n.getPtr().set(n.getPtr().size() - 1, leftPtr);
+            n.getPtr().add(rightPtr);
+        }
 
         int mid = (n.getKeys().size()) / 2;
         T midKey = n.getKeys().get(mid);
@@ -40,8 +43,8 @@ public class BTree<T extends Comparable<T>> {
                 right.getPtr().add(n.getPtr().get(i));
             }
         }
-        right.getPtr().add(null);
-        
+        right.getPtr().add(n.getPtr().get(n.getPtr().size() - 1));
+
         n.getKeys().clear();
         n.getPtr().clear();
 
@@ -49,9 +52,17 @@ public class BTree<T extends Comparable<T>> {
         n.getKeys().add(midKey);
         n.getPtr().add(right);
 
+        // If n is the root, then nothing to do. Everything is just perfect.
+        // If n is not root, then we need to insert n to its parent.
         if( n != root ) {
+            // Find the parent of n,
             Node<T> p = getParent(root, midKey);
-            if( p != root ) {
+
+            // Since our insert method expects a parent node and a key,
+            // we need to get parent's parent so that we can insert the key into parent.
+            // If parent is not root, then it should have a parent,
+            if( p != root ) {//TODO:Buraya hiç girmedik.
+                // let's get it.
                 Node<T> pp = getParent(p, midKey);
                 insertPrivate(pp, midKey, left, right);
             } else {
@@ -97,7 +108,6 @@ public class BTree<T extends Comparable<T>> {
     }
 
     private void insertPrivate(Node<T> n, T key, Node<T> leftPtr, Node<T> rightPtr) {
-        boolean imDone = false;
         if( root == null ) {
             root = new Node<T>();
             root.getPtr().add(leftPtr);
@@ -105,7 +115,7 @@ public class BTree<T extends Comparable<T>> {
             root.getPtr().add(rightPtr);
         } else {
             if( n.getKeys().size() < maxCellSize ) {
-                int tmp = 0;
+                boolean imDone = false;
                 for( int i = 0; i < n.getKeys().size(); i++ ) {
                     if( key.compareTo(n.getKeys().get(i)) < 0 ) {
                         if( n.getPtr().get(i) == null ) {
@@ -119,23 +129,44 @@ public class BTree<T extends Comparable<T>> {
                             imDone = true;
                             break;
                         }
-                    } else if( key.compareTo(n.getKeys().get(i)) > 0 ) {
-                        if( n.getPtr().get(i + 1) == null ) {
-                            tmp = i + 1;
-                        } else {
-                            insertPrivate(n.getPtr().get(i + 1), key, leftPtr, rightPtr);
-                            imDone = true;
-                            break;
-                        }
+                    } else if( key.compareTo(n.getKeys().get(i)) == 0 ) {
+                        System.out.println("The key " + key + " already exists in the tree.");
+                        imDone = true;
+                        break;
                     }
                 }
                 if( !imDone ) {
-                    n.getPtr().set(tmp, leftPtr);
-                    n.getKeys().add(key);
-                    n.getPtr().add(rightPtr);
+                    if( n.getPtr().get(n.getPtr().size() - 1) != null ) {
+                        insertPrivate(n.getPtr().get(n.getPtr().size() - 1), key, leftPtr, rightPtr);
+                    } else {
+                        n.getPtr().set(n.getPtr().size() - 1, leftPtr);
+                        n.getKeys().add(key);
+                        n.getPtr().add(rightPtr);
+                    }
                 }
             } else if( n.getKeys().size() == maxCellSize ) {
-                split(n, key);
+                boolean imDone = false;
+                for(int i = 0; i < n.getKeys().size(); i++) {
+                    if( key.compareTo(n.getKeys().get(i)) < 0 ) {
+                        if( n.getPtr().get(i) != null ) {
+                            insertPrivate(n.getPtr().get(i), key, leftPtr, rightPtr);
+                            imDone = true;
+                            break;
+                        } else {
+                            split(n, key, leftPtr, rightPtr);
+                            imDone = true;
+                            break;
+                        }
+                    } else if( key.compareTo(n.getKeys().get(i)) == 0 ) {
+                        System.out.println("The key " + key + " already exists in the tree.");
+                    }
+                }
+                if( !imDone ) {
+                    if( n.getPtr().get(n.getPtr().size() - 1) != null )
+                        insertPrivate(n.getPtr().get(n.getPtr().size() - 1), key, leftPtr, rightPtr);
+                    else
+                        split(n, key, leftPtr, rightPtr);
+                }
             }
         }
     }
