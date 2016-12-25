@@ -257,6 +257,11 @@ public class BTree<T extends Comparable<T>> {
             return false;
         }
 
+        if( n == root && root.getKeys().contains(key) ) {
+            System.out.println("The key " + key + " is found and it is in the root node.");
+            return true;
+        }
+
         System.out.println("The key " + key + " is found and its parent node has these keys:");
         for( T k :
                 n.getKeys() ) {

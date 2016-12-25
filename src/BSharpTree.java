@@ -108,7 +108,7 @@ public class BSharpTree<T extends Comparable<T>> extends BTree<T> {
                         if( isLeft ) {
                             parentNode.getKeys().add(parentIndex + 1, tmpNode.getKeys().get(mid2));
                         } else {
-                            parentNode.getKeys().set(parentIndex, tmpNode.getKeys().get(mid2));
+                            parentNode.getKeys().add(parentIndex, tmpNode.getKeys().get(mid2));
                         }
                         right.getPtr().add(null);
                     }
@@ -136,6 +136,7 @@ public class BSharpTree<T extends Comparable<T>> extends BTree<T> {
                     }
                 }
             } else {
+                //TODO: Bu kısımda ne olacak?
                 split(n, newKey, leftPtr, rightPtr);
             }
         }
@@ -170,11 +171,6 @@ public class BSharpTree<T extends Comparable<T>> extends BTree<T> {
                 insertAux(n, key, leftPtr, rightPtr);
             }
             // Else if, the node is full,
-            //TODO: Burada kardeşe bakılacak.
-            // Kardeş tam dolu değilse ikili dağılma yapılacak.
-            // Kardeş tam doluysa iki durum var.
-            // 1) Kardeşler tam dolu anaları tam dolu değilse: üçlü dağılma
-            // 2) Kardeşler tam dolu anaları da tam dolu ise split.
             else if( n.getKeys().size() == maxCellSize ) {
                 boolean imDone = false;
                 // Iterate through the keys of it.
