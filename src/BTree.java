@@ -1,6 +1,6 @@
 public class BTree<T extends Comparable<T>> {
     Node<T> root;
-    private int d, maxCellSize, ptrSize;
+    int d, maxCellSize, ptrSize;
 
     public BTree(int d) {
         this.d = d;
@@ -8,7 +8,7 @@ public class BTree<T extends Comparable<T>> {
         this.ptrSize = 2 * d + 1;
     }
 
-    private void split(Node<T> n, T newKey, Node<T> leftPtr, Node<T> rightPtr) {
+    void split(Node<T> n, T newKey, Node<T> leftPtr, Node<T> rightPtr) {
         // newKey is the bad guy who causes the need of split.
         boolean imDone = false;
         // Iterate through keys and insert it into the correct place.
@@ -74,7 +74,7 @@ public class BTree<T extends Comparable<T>> {
         }
     }
 
-    private Node<T> getParent(Node<T> p, T key) {
+    Node<T> getParent(Node<T> p, T key) {
         if( p == root && root.getKeys().contains(key) )
             return root;
 
@@ -91,13 +91,13 @@ public class BTree<T extends Comparable<T>> {
                 // if the key is between the smallest and greatest of left or
                 // if the key is between the greatest of left and its successor(which is n->keys[i])
                 else if( !left.getKeys().contains(key) && (
-                            key.compareTo(left.getKeys().get(0)) < 0 ||
-                            (key.compareTo(left.getKeys().get(0)) > 0 &&
-                            key.compareTo(left.getKeys().get(left.getKeys().size() - 1)) < 0) ||
-                            (key.compareTo(left.getKeys().get(left.getKeys().size() - 1)) > 0 &&
-                            key.compareTo(p.getKeys().get(i)) < 0)
+                        key.compareTo(left.getKeys().get(0)) < 0 ||
+                                (key.compareTo(left.getKeys().get(0)) > 0 &&
+                                        key.compareTo(left.getKeys().get(left.getKeys().size() - 1)) < 0) ||
+                                (key.compareTo(left.getKeys().get(left.getKeys().size() - 1)) > 0 &&
+                                        key.compareTo(p.getKeys().get(i)) < 0)
+                )
                         )
-                    )
                     // then, go left,
                     return getParent(left, key);
             }
@@ -118,10 +118,10 @@ public class BTree<T extends Comparable<T>> {
         return null;
     }
 
-    private int getParentPtr(Node<T> n, Node<T> p) {
+    int getParentPtr(Node<T> n, Node<T> p) {
         // Find n's position in parent p's pointer nodes.
         for( int i = 0; i < p.getPtr().size(); i++ )
-            if(p.getPtr().get(i) == n)
+            if( p.getPtr().get(i) == n )
                 return i;
         return -1;
     }
@@ -130,7 +130,53 @@ public class BTree<T extends Comparable<T>> {
         insertPrivate(root, key, null, null);
     }
 
-    private void insertPrivate(Node<T> n, T key, Node<T> leftPtr, Node<T> rightPtr) {
+    void insertAux(Node<T> n, T key, Node<T> leftPtr, Node<T> rightPtr) {
+        boolean imDone = false;
+        // Iterate through the node,
+        for( int i = 0; i < n.getKeys().size(); i++ ) {
+            // If key is less than n->key[i],
+            if( key.compareTo(n.getKeys().get(i)) < 0 ) {
+                // If it does not point to a node which has a smaller key,
+                if( n.getPtr().get(i) == null ) {
+                    // insert the key here with its pointers.
+                    n.getKeys().add(i, key);
+                    n.getPtr().add(i, leftPtr);
+                    n.getPtr().set(i + 1, rightPtr);
+                    imDone = true;
+                    break;
+                }
+                // Else, we need get into that pointer.
+                else {
+                    insertPrivate(n.getPtr().get(i), key, leftPtr, rightPtr);
+                    imDone = true;
+                    break;
+                }
+            }
+            // Else if the key already exists,
+            else if( key.compareTo(n.getKeys().get(i)) == 0 ) {
+                System.out.println("The key " + key + " already exists in the tree.");
+                imDone = true;
+                break;
+            }
+        }
+        // If the iteration is over and we could not find the correct place,
+        // then we need to append key.
+        if( !imDone ) {
+            // If the last pointer points out somewhere,
+            if( n.getPtr().get(n.getPtr().size() - 1) != null ) {
+                // then go for that node.
+                insertPrivate(n.getPtr().get(n.getPtr().size() - 1), key, leftPtr, rightPtr);
+            }
+            // Else, we append the key with its pointers.
+            else {
+                n.getPtr().set(n.getPtr().size() - 1, leftPtr);
+                n.getKeys().add(key);
+                n.getPtr().add(rightPtr);
+            }
+        }
+    }
+
+    void insertPrivate(Node<T> n, T key, Node<T> leftPtr, Node<T> rightPtr) {
         // If root is null, then the tree is empty.
         // Let's add root first.
         if( root == null ) {
@@ -143,55 +189,13 @@ public class BTree<T extends Comparable<T>> {
         else {
             // If n's size is less than maximum cell size,
             if( n.getKeys().size() < maxCellSize ) {
-                boolean imDone = false;
-                // Iterate through the node,
-                for( int i = 0; i < n.getKeys().size(); i++ ) {
-                    // If key is less than n->key[i],
-                    if( key.compareTo(n.getKeys().get(i)) < 0 ) {
-                        // If it does not point to a node which has a smaller key,
-                        if( n.getPtr().get(i) == null ) {
-                            // insert the key here with its pointers.
-                            n.getKeys().add(i, key);
-                            n.getPtr().add(i, leftPtr);
-                            n.getPtr().set(i + 1, rightPtr);
-                            imDone = true;
-                            break;
-                        }
-                        // Else, we need get into that pointer.
-                        else {
-                            insertPrivate(n.getPtr().get(i), key, leftPtr, rightPtr);
-                            imDone = true;
-                            break;
-                        }
-                    }
-                    // Else if the key already exists,
-                    else if( key.compareTo(n.getKeys().get(i)) == 0 ) {
-                        System.out.println("The key " + key + " already exists in the tree.");
-                        imDone = true;
-                        break;
-                    }
-                }
-                // If the iteration is over and could not find the correct place,
-                // then we need to append key.
-                if( !imDone ) {
-                    // If the last pointer points out somewhere,
-                    if( n.getPtr().get(n.getPtr().size() - 1) != null ) {
-                        // then go for that node.
-                        insertPrivate(n.getPtr().get(n.getPtr().size() - 1), key, leftPtr, rightPtr);
-                    }
-                    // Else, we append the key with its pointers.
-                    else {
-                        n.getPtr().set(n.getPtr().size() - 1, leftPtr);
-                        n.getKeys().add(key);
-                        n.getPtr().add(rightPtr);
-                    }
-                }
+                insertAux(n, key, leftPtr, rightPtr);
             }
             // Else if, the node is full,
             else if( n.getKeys().size() == maxCellSize ) {
                 boolean imDone = false;
                 // Iterate through the keys of it.
-                for(int i = 0; i < n.getKeys().size(); i++) {
+                for( int i = 0; i < n.getKeys().size(); i++ ) {
                     // If the key to insert is smaller than n->key[i],
                     if( key.compareTo(n.getKeys().get(i)) < 0 ) {
                         // Do we need to get deeper,
@@ -218,7 +222,7 @@ public class BTree<T extends Comparable<T>> {
                     // Then, we need to append that key if we can,
                     if( n.getPtr().get(n.getPtr().size() - 1) != null )
                         insertPrivate(n.getPtr().get(n.getPtr().size() - 1), key, leftPtr, rightPtr);
-                    // whereas there is no room, we split.
+                        // whereas there is no room, we split.
                     else
                         split(n, key, leftPtr, rightPtr);
                 }
@@ -233,7 +237,7 @@ public class BTree<T extends Comparable<T>> {
             System.out.println("The tree is empty.");
     }
 
-    private void printTreePrivate(Node<T> n) {
+    void printTreePrivate(Node<T> n) {
         for( int i = 0; i < n.getPtr().size(); i++ ) {
             if( n.getPtr().get(i) != null )
                 printTreePrivate(n.getPtr().get(i));

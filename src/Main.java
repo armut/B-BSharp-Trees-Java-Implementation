@@ -3,7 +3,7 @@ import java.util.Scanner;
 public class Main {
 
     private static void menu() {
-        System.out.println("\nAVL Tree Java Implementation");
+        System.out.println("\nB Tree Java Implementation");
         System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         System.out.println("| [1] Print Tree           |");
         System.out.println("| [2] Insert key           |");
@@ -13,8 +13,8 @@ public class Main {
         System.out.print(">>> ");
     }
     public static void main(String[] args) {
-        BTree<Integer> tree = new BTree<>(2);
-        Integer[] nums = {80, 50, 100, 90, 60, 65, 70, 75, 55, 64, 51, 76, 77, 78, 200, 300, 150};
+        BTree<Integer> tree = new BSharpTree<>(2);
+        Integer[] nums = {80, 50, 100, 90, 60, 65, 70, 75, 55, 64, 51, 76, 77};//, 78, 200, 300, 150};
         //Integer[] nums = {50, 80, 90, 100, 46, 1, 82, 85, 103, 2, 5, 55, 60, 73, 52, 53, 54, 104, 105, 106};
 
         for( Integer i :
@@ -39,7 +39,6 @@ public class Main {
                 System.out.print("Insert a key to tree: ");
                 int key = reader.nextInt();
                 while(key != -1) {
-
                     tree.insert(key);
                     System.out.println("=======================");
                     System.out.print("Insert a key to tree: ");
@@ -54,6 +53,7 @@ public class Main {
                 int key = reader.nextInt();
                 while(key != -1) {
                     tree.search(key);
+
                     System.out.println("=======================");
                     System.out.print("Which key to search: ");
                     key = reader.nextInt();
