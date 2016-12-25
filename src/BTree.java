@@ -104,15 +104,17 @@ public class BTree<T extends Comparable<T>> {
         }
         // If we reach this code segment, then it means we couldn't find the parent yet
         // and we have one more node to look up.
+        Node<T> theLastPointer = p.getPtr().get(p.getPtr().size() - 1);
         if( key.compareTo(p.getKeys().get(p.getKeys().size() - 1)) > 0 ) {
-            if( p.getPtr().get(p.getPtr().size() - 1).getKeys().contains(key) )
-                return p;
-            else
-                return getParent(p.getPtr().get(p.getPtr().size() - 1), key);
+            if( theLastPointer != null ) {
+                if( theLastPointer.getKeys().contains(key) )
+                    return p;
+                else
+                    return getParent(theLastPointer, key);
+            }
         }
 
         // If none of the above, then no such key.
-        System.out.println("No such key: " + key);
         return null;
     }
 
@@ -242,5 +244,21 @@ public class BTree<T extends Comparable<T>> {
             output += " ~ " + String.valueOf(key);
         }
         System.out.println(output);
+    }
+
+    public boolean search(T key) {
+        Node<T> n = getParent(root, key);
+        if( n == null ) {
+            System.out.println("The key " + key + " does not exist in the tree.");
+            return false;
+        }
+
+        System.out.println("The key " + key + " is found and its parent node has these keys:");
+        for( T k :
+                n.getKeys() ) {
+            System.out.print(" ~" + k);
+        }
+        System.out.println();
+        return true;
     }
 }

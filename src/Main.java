@@ -7,6 +7,7 @@ public class Main {
         System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         System.out.println("| [1] Print Tree           |");
         System.out.println("| [2] Insert key           |");
+        System.out.println("| [3] Search key           |");
         System.out.println("| [0] Exit                 |");
         System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         System.out.print(">>> ");
@@ -42,6 +43,19 @@ public class Main {
                     tree.insert(key);
                     System.out.println("=======================");
                     System.out.print("Insert a key to tree: ");
+                    key = reader.nextInt();
+                }
+                menu();
+                select = reader.nextInt();
+            } else if( select == 3 ) {
+                System.out.println("\n======Search Operation======");
+                System.out.println("| [-1] Exit                |\n");
+                System.out.print("Which key to search: ");
+                int key = reader.nextInt();
+                while(key != -1) {
+                    tree.search(key);
+                    System.out.println("=======================");
+                    System.out.print("Which key to search: ");
                     key = reader.nextInt();
                 }
                 menu();
