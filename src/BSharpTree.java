@@ -19,7 +19,7 @@ public class BSharpTree<T extends Comparable<T>> extends BTree<T> {
         }
 
         boolean imDone = false;
-        for( int i = 0; i < newNode.getKeys().size() - 1; i++ ) {
+        for( int i = 0; i < newNode.getKeys().size(); i++ ) {
             if( newKey.compareTo(newNode.getKeys().get(i)) < 0 ) {
                 newNode.getKeys().add(i, newKey);
                 imDone = true;
@@ -143,6 +143,7 @@ public class BSharpTree<T extends Comparable<T>> extends BTree<T> {
     }
 
     private Node<T> getSibling(Node<T> n, T parentKey) {
+        //TODO: Ortada olan bir node için sibling hangisidir?
         Node<T> p = getParent(root, n.getKeys().get(0));
         int pointerIndex = getParentPtr(n, p);
         Node<T> sibling;
@@ -150,6 +151,7 @@ public class BSharpTree<T extends Comparable<T>> extends BTree<T> {
             // which means a left child,
             sibling = p.getPtr().get(pointerIndex + 1);
         else
+            //TODO: Burada bir böcek var.
             sibling = p.getPtr().get(pointerIndex - 1);
         return sibling;
     }
